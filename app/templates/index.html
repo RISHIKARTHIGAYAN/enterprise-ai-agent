@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Enterprise AI Agent</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #111827;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 24px 28px;
+            border-radius: 14px 14px 0 0;
+        }
+
+        .header h1 {
+            margin: 0 0 6px 0;
+            font-size: 26px;
+        }
+
+        .header p {
+            margin: 0;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        .upload-panel {
+            background: white;
+            padding: 18px 24px;
+            border-left: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .upload-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .upload-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .upload-button {
+            background: #111827;
+            color: white;
+        }
+
+        .upload-button:hover {
+            background: #1f2937;
+        }
+
+        .upload-status {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+        .chat-container {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .message {
+            margin-bottom: 22px;
+        }
+
+        .label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #6b7280;
+            margin-bottom: 7px;
+        }
+
+        .user-message {
+            text-align: right;
+        }
+
+        .user-message .label {
+            text-align: right;
+        }
+
+        .bubble {
+            display: inline-block;
+            max-width: 80%;
+            padding: 13px 17px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+
+        .user-bubble {
+            background: #2563eb;
+            color: white;
+        }
+
+        .assistant-bubble {
+            background: #f1f3f5;
+            color: #111827;
+        }
+
+        .metadata {
+            margin-top: 7px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .question-input {
+            flex: 1;
+            padding: 13px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .question-input:focus {
+            border-color: #2563eb;
+        }
+
+        .send-button {
+            background: #2563eb;
+            color: white;
+            min-width: 80px;
+        }
+
+        .send-button:hover {
+            background: #1d4ed8;
+        }
+
+        .send-button:disabled,
+        .upload-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .welcome {
+            text-align: center;
+            color: #64748b;
+            padding: 80px 20px;
+        }
+
+        .welcome h2 {
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        .success {
+            color: #15803d;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                width: 100%;
+                margin: 0;
+            }
+
+            .header {
+                border-radius: 0;
+            }
+
+            .chat-container {
+                height: calc(100vh - 250px);
+            }
+
+            .bubble {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Enterprise AI Agent</h1>
+        <p>
+            Local AI • RAG • SQL • Calculator • LangGraph • Guardrails
+        </p>
+    </div>
+
+    <div class="upload-panel">
+
+        <div class="upload-title">
+            Knowledge Base
+        </div>
+
+        <div class="upload-row">
+
+            <input
+                type="file"
+                id="fileInput"
+                accept=".txt,.pdf,.docx"
+            >
+
+            <button
+                class="upload-button"
+                id="uploadButton"
+                onclick="uploadDocument()"
+            >
+                Upload Document
+            </button>
+
+        </div>
+
+        <div
+            id="uploadStatus"
+            class="upload-status"
+        >
+            Supported formats: TXT, PDF, DOCX
+        </div>
+
+    </div>
+
+    <div class="chat-container">
+
+        <div
+            class="chat-box"
+            id="chatBox"
+        >
+
+            <div class="welcome" id="welcomeMessage">
+
+                <h2>How can I help?</h2>
+
+                <p>
+                    Ask about company policies, employees,
+                    calculations, or upload a new document.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="input-area">
+
+            <input
+                type="text"
+                id="questionInput"
+                class="question-input"
+                placeholder="Ask a question..."
+                autocomplete="off"
+            >
+
+            <button
+                id="sendButton"
+                class="send-button"
+                onclick="sendQuestion()"
+            >
+                Send
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const questionInput =
+        document.getElementById("questionInput");
+
+    const chatBox =
+        document.getElementById("chatBox");
+
+    const sendButton =
+        document.getElementById("sendButton");
+
+    const uploadButton =
+        document.getElementById("uploadButton");
+
+    const uploadStatus =
+        document.getElementById("uploadStatus");
+
+
+    questionInput.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Enter") {
+                sendQuestion();
+            }
+
+        }
+    );
+
+
+    function removeWelcomeMessage() {
+
+        const welcome =
+            document.getElementById("welcomeMessage");
+
+        if (welcome) {
+            welcome.remove();
+        }
+
+    }
+
+
+    function addUserMessage(question) {
+
+        removeWelcomeMessage();
+
+        const message =
+            document.createElement("div");
+
+        message.className =
+            "message user-message";
+
+        message.innerHTML = `
+            <div class="label">YOU</div>
+
+            <div class="bubble user-bubble">
+                ${escapeHtml(question)}
+            </div>
+        `;
+
+        chatBox.appendChild(message);
+
+        scrollToBottom();
+
+    }
+
+
+    function addAssistantMessage(data) {
+
+        const message =
+            document.createElement("div");
+
+        message.className =
+            "message";
+
+        let metadata =
+            `Route: ${data.route || "unknown"}`;
+
+        if (
+            data.sources &&
+            data.sources.length > 0
+        ) {
+
+            const uniqueSources =
+                [
+                    ...new Set(
+                        data.sources.map(
+                            source => source.source
+                        )
+                    )
+                ];
+
+            metadata +=
+                ` | Sources: ${uniqueSources.join(", ")}`;
+
+        }
+
+        if (data.error) {
+
+            metadata +=
+                ` | Error: ${data.error}`;
+
+        }
+
+        message.innerHTML = `
+            <div class="label">AI AGENT</div>
+
+            <div class="bubble assistant-bubble">
+                ${escapeHtml(data.answer || "No answer returned.")}
+            </div>
+
+            <div class="metadata">
+                ${escapeHtml(metadata)}
+            </div>
+        `;
+
+        chatBox.appendChild(message);
+
+        scrollToBottom();
+
+    }
+
+
+    async function sendQuestion() {
+
+        const question =
+            questionInput.value.trim();
+
+        if (!question) {
+            return;
+        }
+
+        addUserMessage(question);
+
+        questionInput.value = "";
+
+        sendButton.disabled = true;
+
+        sendButton.textContent = "Thinking...";
+
+        try {
+
+            const response =
+                await fetch(
+                    "/chat",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            question: question
+                        })
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            addAssistantMessage(data);
+
+        } catch (error) {
+
+            addAssistantMessage({
+                route: "error",
+                answer:
+                    "Unable to connect to the AI agent.",
+                sources: [],
+                error: error.message
+            });
+
+        } finally {
+
+            sendButton.disabled = false;
+
+            sendButton.textContent = "Send";
+
+            questionInput.focus();
+
+        }
+
+    }
+
+
+    async function uploadDocument() {
+
+        const fileInput =
+            document.getElementById("fileInput");
+
+        const file =
+            fileInput.files[0];
+
+        if (!file) {
+
+            uploadStatus.textContent =
+                "Please select a document first.";
+
+            uploadStatus.className =
+                "upload-status error";
+
+            return;
+
+        }
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "file",
+            file
+        );
+
+        uploadButton.disabled = true;
+
+        uploadButton.textContent =
+            "Uploading...";
+
+        uploadStatus.textContent =
+            "Uploading and indexing document...";
+
+        uploadStatus.className =
+            "upload-status";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/upload",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (data.success) {
+
+                uploadStatus.textContent =
+                    `${data.filename} uploaded successfully. ` +
+                    `${data.chunks_indexed} chunk(s) indexed.`;
+
+                uploadStatus.className =
+                    "upload-status success";
+
+                fileInput.value = "";
+
+            } else {
+
+                uploadStatus.textContent =
+                    data.error ||
+                    "Document upload failed.";
+
+                uploadStatus.className =
+                    "upload-status error";
+
+            }
+
+        } catch (error) {
+
+            uploadStatus.textContent =
+                "Unable to upload document: " +
+                error.message;
+
+            uploadStatus.className =
+                "upload-status error";
+
+        } finally {
+
+            uploadButton.disabled = false;
+
+            uploadButton.textContent =
+                "Upload Document";
+
+        }
+
+    }
+
+
+    function scrollToBottom() {
+
+        chatBox.scrollTop =
+            chatBox.scrollHeight;
+
+    }
+
+
+    function escapeHtml(text) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            text;
+
+        return div.innerHTML;
+
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+Information Security Policy
+
+Employees must use company-approved devices to access internal systems.
+
+Passwords must not be shared with other employees.
+
+Multi-factor authentication is required for systems that support it.
+
+Employees must immediately report suspected security incidents to the
+security team.
+
+Sensitive company information must not be uploaded to unauthorized
+third-party services.
+
+Company devices must be locked when unattended.
